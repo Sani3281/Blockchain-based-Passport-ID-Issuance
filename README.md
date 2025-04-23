@@ -18,3 +18,6 @@ To build a reliable, secure, and globally accessible blockchain-based platform f
 - 🔏 Enhanced privacy using zero-knowledge proofs (ZKPs).
 - 🧩 Role-based access and multi-authority verification layers.
 
+## contract detail
+0x1eCE951ac7420ccb9248fe284ac4533152E4Ea07
+![image](https://github.com/user-attachments/assets/165ac953-b9a9-465e-9dc0-a32d39411b8f)
