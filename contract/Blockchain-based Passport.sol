@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract PassportID {
+contract PassportID {0x1eCE951ac7420ccb9248fe284ac4533152E4Ea07
     address public governmentAuthority;
 
     struct Passport {
@@ -12,9 +12,10 @@ contract PassportID {
     }
 
     mapping(address => Passport) public passports;
-    address[] public passportHolders; // New array to store citizen addresses
+    mapping(address => bool) private isHolder;
+    address[] public passportHolders; 
 
-    uint256 public totalIssued; // Track total issued passports
+    uint256 public totalIssued; 
 
     constructor() {
         governmentAuthority = msg.sender;
@@ -37,8 +38,12 @@ contract PassportID {
         uint256 dob
     ) public onlyAuthority {
         require(!passports[citizen].isIssued, "Passport already issued");
+        require(dob <= block.timestamp, "Invalid date of birth");
         passports[citizen] = Passport(fullName, nationality, dob, true);
-        passportHolders.push(citizen);
+        if (!isHolder[citizen]) {
+            passportHolders.push(citizen);
+            isHolder[citizen] = true;
+        }
         totalIssued++;
         emit PassportIssued(citizen);
     }
@@ -55,6 +60,7 @@ contract PassportID {
         uint256 dob
     ) public onlyAuthority {
         require(passports[citizen].isIssued, "Passport not issued yet");
+        require(dob <= block.timestamp, "Invalid date of birth");
         passports[citizen] = Passport(fullName, nationality, dob, true);
         emit PassportUpdated(citizen);
     }
@@ -77,7 +83,6 @@ contract PassportID {
         emit AuthorityTransferred(oldAuthority, newAuthority);
     }
 
-    // New Function: Citizen can request passport revocation
     function requestPassportCancellation() public {
         require(passports[msg.sender].isIssued, "No active passport found");
         passports[msg.sender].isIssued = false;
@@ -85,13 +90,29 @@ contract PassportID {
         emit PassportRevoked(msg.sender);
     }
 
-    // New Function: View total number of active passports
     function totalActivePassports() public view returns (uint256) {
         return totalIssued;
     }
 
-    // New Function: View all passport holders (Only authority)
     function getAllPassportHolders() public view onlyAuthority returns (address[] memory) {
         return passportHolders;
     }
-}
+
+    // ----------------------- NEW FUNCTIONS -----------------------
+
+    // View only active passport holders
+    function getActivePassportHolders() public view onlyAuthority returns (address[] memory) {
+        uint256 activeCount = 0;
+        for (uint256 i = 0; i < passportHolders.length; i++) {
+            if (passports[passportHolders[i]].isIssued) {
+                activeCount++;
+            }
+        }
+
+        address[] memory activeHolders = new address[](activeCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < passportHolders.length; i++) {
+            if (passports[passportHolders[i]].isIssued) {
+                activeHolders[index] = passportHolders[i];
+                index++;
+            }
